@@ -17,6 +17,28 @@ encryption_key = b'0123456789abcdef0123456789abcdef'
 os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
 os.makedirs(app.config['ENCRYPTED_FOLDER'], exist_ok=True)
 
+# Function to decrypt a file
+def decrypt_file(encrypted_path, decrypted_path):
+    # Read the encrypted file contents
+    with open(encrypted_path, 'rb') as f:
+        ciphertext = f.read()
+
+    # Create a cipher object for AES decryption
+    backend = default_backend()
+    cipher = Cipher(algorithms.AES(encryption_key), modes.ECB(), backend=backend)
+    decryptor = cipher.decryptor()
+
+    # Decrypt the file contents
+    plaintext = decryptor.update(ciphertext) + decryptor.finalize()
+
+    # Remove padding from the plaintext
+    unpadder = padding.PKCS7(algorithms.AES.block_size).unpadder()
+    unpadded_plaintext = unpadder.update(plaintext) + unpadder.finalize()
+
+    # Write the decrypted file
+    with open(decrypted_path, 'wb') as f:
+        f.write(unpadded_plaintext)
+
 # Function to encrypt a file
 def encrypt_file(file_path, encrypted_path):
     # Read the file contents
