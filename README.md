@@ -9,9 +9,12 @@ cd ..
 pip install -r requirements.txt
 
 # Run the app
+# By Arpit Gupta
 cd secure_storage
 cd Scripts
 activate.bat
 cd ..
 python app.py
 ```
+
+
