@@ -9,5 +9,9 @@ cd ..
 pip install -r requirements.txt
 
 # Run the app
+cd secure_storage
+cd Scripts
+activate.bat
+cd ..
 python app.py
 ```
