@@ -1,21 +1,40 @@
 # app.py
 import os
+import sqlite3
 from flask import Flask, render_template, request, redirect, url_for, send_file, session
 from werkzeug.utils import secure_filename
 from cryptography.hazmat.primitives import padding
 from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
 from cryptography.hazmat.backends import default_backend
+import hashlib
 
 app = Flask(__name__)
 app.secret_key = os.urandom(24)
 app.config['UPLOAD_FOLDER'] = 'uploads/'
 app.config['ENCRYPTED_FOLDER'] = 'encrypted/'
+app.config['DATABASE'] = 'database.db'
 
 # Set the encryption key (ideally, this should be fetched securely from a key management service)
 encryption_key = b'0123456789abcdef0123456789abcdef'
 
 os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
 os.makedirs(app.config['ENCRYPTED_FOLDER'], exist_ok=True)
+
+# Initialize database
+def init_db():
+    with sqlite3.connect(app.config['DATABASE']) as conn:
+        cursor = conn.cursor()
+        cursor.execute('''
+            CREATE TABLE IF NOT EXISTS users (
+                id INTEGER PRIMARY KEY,
+                username TEXT UNIQUE NOT NULL,
+                password TEXT NOT NULL
+            )
+        ''')
+        conn.commit()
+
+# Initialize database when the app starts
+init_db()
 
 # Function to decrypt a file
 def decrypt_file(encrypted_path, decrypted_path):
@@ -81,14 +100,38 @@ def login():
         username = request.form['username']
         password = request.form['password']
         
-        # Check if username and password are correct (you can replace this with a database lookup)
-        if username == 'admin' and password == 'password':
-            session['username'] = username
-            return redirect(url_for('home'))
-        else:
-            return render_template('login.html', error='Invalid username or password')
+        # Check if username and password are correct
+        with sqlite3.connect(app.config['DATABASE']) as conn:
+            cursor = conn.cursor()
+            cursor.execute('SELECT * FROM users WHERE username=?', (username,))
+            user = cursor.fetchone()
+            if user and hashlib.md5(password.encode()).hexdigest() == user[2]:
+                session['username'] = username
+                return redirect(url_for('home'))
+            else:
+                return render_template('login.html', error='Invalid username or password')
 
     return render_template('login.html', error=None)
+
+# Route for registering a new user
+@app.route('/register', methods=['GET', 'POST'])
+def register():
+    if request.method == 'POST':
+        username = request.form['username']
+        password = request.form['password']
+        
+        # Hash the password
+        hashed_password = hashlib.md5(password.encode()).hexdigest()
+
+        # Add the new user to the database
+        with sqlite3.connect(app.config['DATABASE']) as conn:
+            cursor = conn.cursor()
+            cursor.execute('INSERT INTO users (username, password) VALUES (?, ?)', (username, hashed_password))
+            conn.commit()
+
+        return redirect(url_for('login'))
+
+    return render_template('register.html')
 
 # Route for uploading a file
 @app.route('/upload', methods=['POST'])
