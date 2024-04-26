@@ -1,0 +1,66 @@
+/* static/styles.css */
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: #f4f4f4;
+}
+
+.container {
+    max-width: 800px;
+    margin: 50px auto;
+    padding: 20px;
+    background-color: #fff;
+    border-radius: 5px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+h1, h2 {
+    text-align: center;
+}
+
+.form {
+    text-align: center;
+}
+
+.form input[type="file"] {
+    margin-bottom: 10px;
+}
+
+.error {
+    color: red;
+}
+
+.btn {
+    background-color: #4CAF50;
+    color: white;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.btn:hover {
+    background-color: #45a049;
+}
+
+.file-list {
+    list-style: none;
+    padding: 0;
+}
+
+.file-list li {
+    margin-bottom: 10px;
+}
+
+.logout {
+    float: right;
+    margin-top: -40px;
+    color: #4CAF50;
+    text-decoration: none;
+}
+
+.logout:hover {
+    text-decoration: underline;
+}
+
