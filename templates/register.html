@@ -5,22 +5,25 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Register</title>
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='styles.css') }}">
 </head>
 <body>
-    <h1>Register</h1>
-    <form action="{{ url_for('register') }}" method="post">
-        <div>
-            <label for="username">Username:</label>
-            <input type="text" id="username" name="username" required>
-        </div>
-        <div>
-            <label for="password">Password:</label>
-            <input type="password" id="password" name="password" required>
-        </div>
-        <div>
-            <input type="submit" value="Register">
-        </div>
-    </form>
+    <div class="container">
+        <h1>Register</h1>
+        <form action="{{ url_for('register') }}" method="post" class="form">
+            <div>
+                <label for="username">Username:</label>
+                <input type="text" id="username" name="username" required>
+            </div>
+            <div>
+                <label for="password">Password:</label>
+                <input type="password" id="password" name="password" required>
+            </div>
+            <div>
+                <input type="submit" value="Register" class="btn">
+            </div>
+        </form>
+    </div>
 </body>
 </html>
 
