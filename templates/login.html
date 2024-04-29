@@ -1,24 +1,22 @@
 <!-- templates/login.html -->
 <!DOCTYPE html>
-<html>
+<html id="html_login">
 <head>
     <title>Login</title>
     <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='styles.css') }}">
 </head>
 <body>
-    <div class="container">
+    <div class="container" id="container_login">
         <h1>Login</h1>
         {% if error %}
         <p class="error">{{ error }}</p>
         {% endif %}
         <form action="{{ url_for('login') }}" method="post" class="form">
-            <label for="username">Username:</label>
-            <input type="text" id="username" name="username" required><br><br>
-            <label for="password">Password:</label>
-            <input type="password" id="password" name="password" required><br><br>
-            <input type="submit" value="Login" class="btn">
+            <input type="text" id="username" name="username" placeholder="Username" class="user_pass"required><br><br>
+            <input type="password" id="password" name="password" placeholder="Password" class="user_pass" required><br><br>
+            <input type="submit" value="SUBMIT" class="btn" id="btn_login">
         </form>
-        <p>Don't have an account? <a href="{{ url_for('register') }}">Register here</a></p>
+        <p>Don't have an account? <a href="{{ url_for('register') }}" class="a_login">Register here</a></p>
     </div>
 </body>
 </html>

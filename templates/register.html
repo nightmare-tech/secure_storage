@@ -1,6 +1,6 @@
 <!-- templates/register.html -->
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" id="html_register">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -8,23 +8,24 @@
     <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='styles.css') }}">
 </head>
 <body>
-    <div class="container">
+    <div class="container" id="container_register">
+        <div class ="title" >
         <h1>Register</h1>
+        </div>
         <form action="{{ url_for('register') }}" method="post" class="form">
             <div>
-                <label for="username">Username:</label>
-                <input type="text" id="username" name="username" required><br><br>
+                <!--<label for="username">Username:</label>-->
+                <input type="text" id="username" name="username" placeholder="Username" required><br><br>
             </div>
             <div>
-                <label for="password">Password:</label>
-                <input type="password" id="password" name="password" required><br><br>
+                <!--<label for="password">Password:</label>-->
+                <input type="password" id="password" name="password" placeholder="Password" required><br><br>
             </div>
-            <div>
-                <input type="submit" value="Register" class="btn">
+            <div class="field">
+                <input type="submit" value="SUBMIT" class="btn" id="btn_register">
             </div>
         </form>
-        <p>Already have an account? <a href="{{ url_for('login') }}">Login here</a></p>
+        <p class="para">Already have an account? <a href="{{ url_for('login') }}" class="anchor ">Login here</a></p>
     </div>
 </body>
 </html>
-
