@@ -5,9 +5,7 @@ body {
     background-color: #f4f4f4;
 }
 
-#body_index{ /*Add class*/
-    color: white;
-}
+
 
 html {
     background-size: cover;
@@ -19,7 +17,7 @@ html {
 }
 
 #html_register{ /*Add ID*/
-    background-image: url(./register.jpg);
+    background-image: url(./Login.jpeg);
 }
 
 #html_login { /*Add ID*/
@@ -27,7 +25,7 @@ html {
 }
 
 #html_index{ /*Add ID*/
-    background-image: url(./index.jpeg);
+    background-image: url(./Login.jpeg);
 }
 
 .container {
@@ -40,7 +38,7 @@ html {
 }
 
 #container_register{ /*Add ID*/
-    background-color: rgba(255,255,255,0.5);
+    background-color: rgba(255,255,255,0.6);
     border-radius: 15px;
     box-shadow: -3px 3px rgba(255, 255, 255, 0.3);
 }
@@ -52,9 +50,9 @@ html {
 }
 
 #container_index{ /*Add ID*/
-    background-color: rgba(0,0,0,0.7);
-    border-radius: 8px;
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    background-color: rgba(255,255,255,0.6);
+    border-radius: 15px;
+    box-shadow: -3px 3px rgba(255, 255, 255, 0.3);
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -72,7 +70,7 @@ h1, h2 {
     text-align: center;
 }
 #h1_index, #h2_index{ /*Add ID*/
-    color: whitesmoke;
+    color: black;
 }
 .form {
     text-align: center;
@@ -93,7 +91,7 @@ h1, h2 {
     cursor: pointer;
 }
 #btn_register{ /*Add ID*/
-    background-color: rgb(76, 175, 80);
+    background-color: rgb(93, 198, 96);
     padding: 6px 25px;
 }
 
@@ -133,27 +131,21 @@ input {
 .title{
     font-size: 15px;
     text-align: center;
-    color: #fff;
+    color: black;
     user-select: none;
     border-radius: 15px 20px 15px 20px;
-    background: linear-gradient(-135deg, #c850c0, #4158d0);
 }
 
-.field {
-    height: 50px;
-    width: 100%;
-    margin-top: 20px;
-    position: relative;
-}
+
 
 .field input{
     height: 50%;
-    width: 50%;
+
     outline: none;
     font-size: 17px;
     padding-left: 20px;
     border: 1px solid lightgrey;
-    border-radius: 25px;
+    border-radius: 5px;
     transition: all 0.3s ease;
 }
 
@@ -164,26 +156,22 @@ input {
 .field input[type="submit"] {
     color: #fff;
     border: none;    
-    margin-top: -10px;
-    font-size: 12px;
+
+    font-size: 14px;
 
     padding-bottom: 10px;
     cursor: pointer;
-    background: linear-gradient(-135deg, #c850c0, #4158d0);
     transition: all 0.3s ease;
     text-align: center;
 }
 
 .field_index input[type="submit"]{ /*Change class*/ /*Check*/
     color: #fff;
-    border: none;
-    /*DIFF*/padding-left: 0;
+    border: none;    
     margin-top: -10px;
-    /*diff*/font-size: 15px;
+    font-size: 12px;
     padding-bottom: 10px;
-    /*diff*/font-weight: 500;
     cursor: pointer;
-    background: linear-gradient(-135deg, #c850c0, #4158d0);
     transition: all 0.3s ease;
     text-align: center;
 }
