@@ -1,5 +1,5 @@
 # Secure Storage
-A secure storage application you can host encrypted files on any network.
+A secure drive you can host on any network.
 
 
 How to run:
