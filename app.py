@@ -1,4 +1,3 @@
-# app.py
 import os
 import sqlite3
 from flask import Flask, render_template, request, redirect, url_for, send_file, session
@@ -17,8 +16,16 @@ app.config['SESSION_COOKIE_SECURE'] = True
 app.config['SESSION_COOKIE_HTTPONLY'] = True
 app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
 
-# Fetch the encryption key securely from an environment variable
-encryption_key = os.getenv('ENCRYPTION_KEY', '0123456789abcdef0123456789abcdef').encode()
+# Function to fetch the encryption key securely from an environment variable
+def get_encryption_key():
+    key = os.getenv('ENCRYPTION_KEY')
+    if key is None:
+        print("Warning: Using default encryption key. This is insecure for production use.")
+        return b'0123456789abcdef0123456789abcdef'
+    return key.encode()
+
+# Retrieve the encryption key
+encryption_key = get_encryption_key()
 
 os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
 os.makedirs(app.config['ENCRYPTED_FOLDER'], exist_ok=True)
@@ -27,13 +34,11 @@ os.makedirs(app.config['ENCRYPTED_FOLDER'], exist_ok=True)
 def init_db():
     with sqlite3.connect(app.config['DATABASE']) as conn:
         cursor = conn.cursor()
-        cursor.execute('''
-            CREATE TABLE IF NOT EXISTS users (
-                id INTEGER PRIMARY KEY,
-                username TEXT UNIQUE NOT NULL,
-                password TEXT NOT NULL
-            )
-        ''')
+        cursor.execute('''CREATE TABLE IF NOT EXISTS users (
+                            id INTEGER PRIMARY KEY,
+                            username TEXT UNIQUE NOT NULL,
+                            password TEXT NOT NULL
+                        )''')
         conn.commit()
 
 # Initialize database when the app starts
@@ -52,7 +57,13 @@ def decrypt_file(encrypted_path, decrypted_path):
     plaintext = decryptor.update(ciphertext[16:]) + decryptor.finalize()
 
     unpadder = padding.PKCS7(algorithms.AES.block_size).unpadder()
-    unpadded_plaintext = unpadder.update(plaintext) + unpadded_plaintext.finalize()
+    
+    # Initialize unpadded_plaintext safely with error handling
+    try:
+        unpadded_plaintext = unpadder.update(plaintext) + unpadder.finalize()
+    except Exception as e:
+        print("Error during unpadding:", e)
+        return
 
     with open(decrypted_path, 'wb') as f:
         f.write(unpadded_plaintext)
