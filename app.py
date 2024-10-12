@@ -1,4 +1,3 @@
-# app.py
 import os
 import sqlite3
 from flask import Flask, render_template, request, redirect, url_for, send_file, session
@@ -6,16 +5,27 @@ from werkzeug.utils import secure_filename
 from cryptography.hazmat.primitives import padding
 from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
 from cryptography.hazmat.backends import default_backend
-import hashlib
+import bcrypt
 
 app = Flask(__name__)
 app.secret_key = os.urandom(24)
 app.config['UPLOAD_FOLDER'] = 'uploads/'
 app.config['ENCRYPTED_FOLDER'] = 'encrypted/'
 app.config['DATABASE'] = 'database.db'
+app.config['SESSION_COOKIE_SECURE'] = True
+app.config['SESSION_COOKIE_HTTPONLY'] = True
+app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
 
-# Set the encryption key (ideally, this should be fetched securely from a key management service)
-encryption_key = b'0123456789abcdef0123456789abcdef'
+# Function to fetch the encryption key securely from an environment variable
+def get_encryption_key():
+    key = os.getenv('ENCRYPTION_KEY')
+    if key is None:
+        print("Warning: Using default encryption key. This is insecure for production use.")
+        return b'0123456789abcdef0123456789abcdef'
+    return key.encode()
+
+# Retrieve the encryption key
+encryption_key = get_encryption_key()
 
 os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
 os.makedirs(app.config['ENCRYPTED_FOLDER'], exist_ok=True)
@@ -24,13 +34,11 @@ os.makedirs(app.config['ENCRYPTED_FOLDER'], exist_ok=True)
 def init_db():
     with sqlite3.connect(app.config['DATABASE']) as conn:
         cursor = conn.cursor()
-        cursor.execute('''
-            CREATE TABLE IF NOT EXISTS users (
-                id INTEGER PRIMARY KEY,
-                username TEXT UNIQUE NOT NULL,
-                password TEXT NOT NULL
-            )
-        ''')
+        cursor.execute('''CREATE TABLE IF NOT EXISTS users (
+                            id INTEGER PRIMARY KEY,
+                            username TEXT UNIQUE NOT NULL,
+                            password TEXT NOT NULL
+                        )''')
         conn.commit()
 
 # Initialize database when the app starts
@@ -38,45 +46,43 @@ init_db()
 
 # Function to decrypt a file
 def decrypt_file(encrypted_path, decrypted_path):
-    # Read the encrypted file contents
     with open(encrypted_path, 'rb') as f:
         ciphertext = f.read()
 
-    # Create a cipher object for AES decryption
     backend = default_backend()
-    cipher = Cipher(algorithms.AES(encryption_key), modes.ECB(), backend=backend)
+    iv = ciphertext[:16]  # Extract the first 16 bytes as the IV
+    cipher = Cipher(algorithms.AES(encryption_key), modes.CBC(iv), backend=backend)
     decryptor = cipher.decryptor()
 
-    # Decrypt the file contents
-    plaintext = decryptor.update(ciphertext) + decryptor.finalize()
+    plaintext = decryptor.update(ciphertext[16:]) + decryptor.finalize()
 
-    # Remove padding from the plaintext
     unpadder = padding.PKCS7(algorithms.AES.block_size).unpadder()
-    unpadded_plaintext = unpadder.update(plaintext) + unpadder.finalize()
+    
+    # Initialize unpadded_plaintext safely with error handling
+    try:
+        unpadded_plaintext = unpadder.update(plaintext) + unpadder.finalize()
+    except Exception as e:
+        print("Error during unpadding:", e)
+        return
 
-    # Write the decrypted file
     with open(decrypted_path, 'wb') as f:
         f.write(unpadded_plaintext)
 
 # Function to encrypt a file
 def encrypt_file(file_path, encrypted_path):
-    # Read the file contents
     with open(file_path, 'rb') as f:
         plaintext = f.read()
 
-    # Create a cipher object for AES encryption
     backend = default_backend()
-    cipher = Cipher(algorithms.AES(encryption_key), modes.ECB(), backend=backend)
+    iv = os.urandom(16)  # Create a random IV
+    cipher = Cipher(algorithms.AES(encryption_key), modes.CBC(iv), backend=backend)
     encryptor = cipher.encryptor()
 
-    # Add padding to the plaintext
     padder = padding.PKCS7(algorithms.AES.block_size).padder()
     padded_plaintext = padder.update(plaintext) + padder.finalize()
 
-    # Encrypt the padded file contents
-    ciphertext = encryptor.update(padded_plaintext) + encryptor.finalize()
+    ciphertext = iv + encryptor.update(padded_plaintext) + encryptor.finalize()  # Prepend IV to ciphertext
 
-    # Write the encrypted file
     with open(encrypted_path, 'wb') as f:
         f.write(ciphertext)
 
@@ -84,7 +90,6 @@ def encrypt_file(file_path, encrypted_path):
 def is_logged_in():
     return 'username' in session
 
-# Route for the home page
 @app.route('/')
 def home():
     if not is_logged_in():
@@ -93,7 +98,6 @@ def home():
     encrypted_files = os.listdir(app.config['ENCRYPTED_FOLDER'])
     return render_template('index.html', encrypted_files=encrypted_files)
 
-# Route for the login page
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
@@ -105,7 +109,7 @@ def login():
             cursor = conn.cursor()
             cursor.execute('SELECT * FROM users WHERE username=?', (username,))
             user = cursor.fetchone()
-            if user and hashlib.md5(password.encode()).hexdigest() == user[2]:
+            if user and bcrypt.checkpw(password.encode(), user[2].encode()):
                 session['username'] = username
                 return redirect(url_for('home'))
             else:
@@ -113,15 +117,14 @@ def login():
 
     return render_template('login.html', error=None)
 
-# Route for registering a new user
 @app.route('/register', methods=['GET', 'POST'])
 def register():
     if request.method == 'POST':
         username = request.form['username']
         password = request.form['password']
         
-        # Hash the password
-        hashed_password = hashlib.md5(password.encode()).hexdigest()
+        # Hash the password using bcrypt
+        hashed_password = bcrypt.hashpw(password.encode(), bcrypt.gensalt()).decode()
 
         # Add the new user to the database
         with sqlite3.connect(app.config['DATABASE']) as conn:
@@ -133,7 +136,6 @@ def register():
 
     return render_template('register.html')
 
-# Route for uploading a file
 @app.route('/upload', methods=['POST'])
 def upload_file():
     if not is_logged_in():
@@ -163,10 +165,12 @@ def download_file(filename):
     decrypted_path = os.path.join(app.config['UPLOAD_FOLDER'], filename[:-10])  # Remove '.encrypted' from the filename
 
     decrypt_file(encrypted_path, decrypted_path)
+    response = send_file(decrypted_path, as_attachment=True)
 
-    return send_file(decrypted_path, as_attachment=True)
+    os.remove(decrypted_path)  # Clean up the decrypted file
 
-# Route for logging out
+    return response
+
 @app.route('/logout')
 def logout():
     session.pop('username', None)
@@ -174,4 +178,3 @@ def logout():
 
 if __name__ == '__main__':
     app.run(debug=True)
-
