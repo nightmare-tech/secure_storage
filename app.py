@@ -1,6 +1,6 @@
 import os
 import sqlite3
-from flask import Flask, render_template, request, redirect, url_for, send_file, session, jsonify
+from flask import Flask, render_template, request, redirect, url_for, send_file, session
 from werkzeug.utils import secure_filename
 from cryptography.hazmat.primitives import padding
 from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
@@ -12,8 +12,9 @@ app.secret_key = os.urandom(24)
 app.config['UPLOAD_FOLDER'] = 'uploads/'
 app.config['ENCRYPTED_FOLDER'] = 'encrypted/'
 app.config['DATABASE'] = 'database.db'
-app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 0
-
+app.config['SESSION_COOKIE_SECURE'] = True
+app.config['SESSION_COOKIE_HTTPONLY'] = True
+app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
 
 # Function to fetch the encryption key securely from an environment variable
 def get_encryption_key():
@@ -95,7 +96,9 @@ def home():
         return redirect(url_for('login'))
     
     encrypted_files = os.listdir(app.config['ENCRYPTED_FOLDER'])
-    return render_template('index.html', encrypted_files=encrypted_files, username=session['username'])
+    username = session.get('username', 'Guest')  # Get username from session, default to 'Guest' if not found
+    return render_template('index.html', encrypted_files=encrypted_files, username=username)
+
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
@@ -109,7 +112,7 @@ def login():
             cursor.execute('SELECT * FROM users WHERE username=?', (username,))
             user = cursor.fetchone()
             if user and bcrypt.checkpw(password.encode(), user[2].encode()):
-                session['username'] = username
+                session['username'] = username  # Ensure this line is present
                 return redirect(url_for('home'))
             else:
                 return render_template('login.html', error='Invalid username or password')
