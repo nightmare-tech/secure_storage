@@ -1,27 +1,47 @@
 <!-- templates/index.html -->
 <!DOCTYPE html>
 <html id="html_index">
-<head>
+  <head>
     <title>Secure File Storage</title>
-    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='styles.css') }}">
-</head>
-<body id="body_index">
+    <link
+      rel="stylesheet"
+      type="text/css"
+      href="{{ url_for('static', filename='styles.css') }}"
+    />
+  </head>
+  <body id="body_index">
     <div class="container" id="container_index">
-        <div class="heading"><h1 id="h1_index">Secure File Storage</h1></div>
-        <div class="hyperlink"><a href="{{ url_for('logout') }}" class="logout">Logout</a></div>
-        <form action="{{ url_for('upload_file') }}" method="post" enctype="multipart/form-data" class="form">
-            <input type="file" name="file" required>
-            <input type="submit" value="Upload File">
-        </form>
+      <div class="heading"><h1 id="h1_index">Secure File Storage</h1></div>
+      <div class="hyperlink">
+        <a href="{{ url_for('logout') }}" class="logout">Logout</a>
+      </div>
+      <form
+        action="{{ url_for('upload_file') }}"
+        method="post"
+        enctype="multipart/form-data"
+        class="form"
+      >
+        <input type="file" name="file" required />
+        <input type="submit" value="Upload File" />
+      </form>
 
-        <h2 id="h2_index">Encrypted Files and Folders</h2>
-        <ul class="file-list">
-            {% for file in encrypted_files %}
-            <li>
-                <a href="{{ url_for('download_file', filename=file) }}">{{ file[:-10] }}</a>
-            </li>
-            {% endfor %}
-        </ul>
+      <h2 id="h2_index">Encrypted Files and Folders</h2>
+      <ul class="file-list">
+        {% for file in encrypted_files %}
+        <li>
+          <a href="{{ url_for('download_file', filename=file) }}"
+            >{{ file[:-10] }}</a
+          >
+          <form
+            action="{{ url_for('delete_file', filename=file) }}"
+            method="post"
+            style="display: inline"
+          >
+            <button type="submit" class="delete-btn">Delete</button>
+          </form>
+        </li>
+        {% endfor %}
+      </ul>
     </div>
-</body>
+  </body>
 </html>
