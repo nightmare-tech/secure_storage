@@ -1,6 +1,6 @@
 import os
 import sqlite3
-from flask import Flask, render_template, request, redirect, url_for, send_file, session
+from flask import Flask, render_template, request, redirect, url_for, send_file, session, jsonify
 from werkzeug.utils import secure_filename
 from cryptography.hazmat.primitives import padding
 from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
@@ -12,9 +12,8 @@ app.secret_key = os.urandom(24)
 app.config['UPLOAD_FOLDER'] = 'uploads/'
 app.config['ENCRYPTED_FOLDER'] = 'encrypted/'
 app.config['DATABASE'] = 'database.db'
-app.config['SESSION_COOKIE_SECURE'] = True
-app.config['SESSION_COOKIE_HTTPONLY'] = True
-app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
+app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 0
+
 
 # Function to fetch the encryption key securely from an environment variable
 def get_encryption_key():
@@ -96,7 +95,7 @@ def home():
         return redirect(url_for('login'))
     
     encrypted_files = os.listdir(app.config['ENCRYPTED_FOLDER'])
-    return render_template('index.html', encrypted_files=encrypted_files)
+    return render_template('index.html', encrypted_files=encrypted_files, username=session['username'])
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
@@ -176,5 +175,20 @@ def logout():
     session.pop('username', None)
     return redirect(url_for('login'))
 
+    # Add this new route for deleting files
+@app.route('/delete_files', methods=['POST'])
+def delete_files():
+    if not is_logged_in():
+        return redirect(url_for('login'))
+
+    files_to_delete = request.form.getlist('files')
+    for filename in files_to_delete:
+        file_path = os.path.join(app.config['ENCRYPTED_FOLDER'], filename)
+        if os.path.exists(file_path):
+            os.remove(file_path)
+
+    return redirect(url_for('home'))
+
 if __name__ == '__main__':
+    app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 0
     app.run(debug=True)

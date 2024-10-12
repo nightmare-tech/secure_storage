@@ -3,25 +3,51 @@
 <html id="html_index">
 <head>
     <title>Secure File Storage</title>
-    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='styles.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css', v=5) }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
 </head>
 <body id="body_index">
     <div class="container" id="container_index">
         <div class="heading"><h1 id="h1_index">Secure File Storage</h1></div>
-        <div class="hyperlink"><a href="{{ url_for('logout') }}" class="logout">Logout</a></div>
+        <div class="user-info">
+            <span>Welcome, {{ username }}!</span>
+            <a href="{{ url_for('logout') }}" class="logout">Logout</a>
+        </div>
         <form action="{{ url_for('upload_file') }}" method="post" enctype="multipart/form-data" class="form">
-            <input type="file" name="file" required>
+            <input type="file" name="file" id="file-input" required>
+            <label for="file-input" class="file-input-label">Choose File</label>
             <input type="submit" value="Upload File">
         </form>
 
         <h2 id="h2_index">Encrypted Files and Folders</h2>
-        <ul class="file-list">
-            {% for file in encrypted_files %}
-            <li>
-                <a href="{{ url_for('download_file', filename=file) }}">{{ file[:-10] }}</a>
-            </li>
-            {% endfor %}
-        </ul>
+        <form id="file-actions-form" method="post">
+            <ul class="file-list">
+                {% for file in encrypted_files %}
+                <li>
+                    <input type="checkbox" name="files" value="{{ file }}" id="file-{{ loop.index }}">
+                    <label for="file-{{ loop.index }}">
+                        <i class="fas fa-file-alt"></i> {{ file[:-10] }}
+                    </label>
+                </li>
+                {% endfor %}
+            </ul>
+            <div class="file-actions">
+                <button type="submit" formaction="{{ url_for('delete_files') }}" class="btn btn-danger">
+                    <i class="fas fa-trash-alt"></i> Delete Selected
+                </button>
+                <button type="button" id="download-selected" class="btn btn-primary">
+                    <i class="fas fa-download"></i> Download Selected
+                </button>
+            </div>
+        </form>
     </div>
+    <script>
+        document.getElementById('download-selected').addEventListener('click', function() {
+            var checkboxes = document.querySelectorAll('input[name="files"]:checked');
+            checkboxes.forEach(function(checkbox) {
+                window.open("{{ url_for('download_file', filename='') }}" + checkbox.value, '_blank');
+            });
+        });
+    </script>
 </body>
 </html>
