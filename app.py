@@ -6,6 +6,8 @@ from cryptography.hazmat.primitives import padding
 from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
 from cryptography.hazmat.backends import default_backend
 import bcrypt
+from flask_limiter import Limiter
+from flask_limiter.util import get_remote_address
 
 app = Flask(__name__)
 app.secret_key = os.urandom(24)
@@ -15,6 +17,13 @@ app.config['DATABASE'] = 'database.db'
 app.config['SESSION_COOKIE_SECURE'] = True
 app.config['SESSION_COOKIE_HTTPONLY'] = True
 app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
+
+# Initialize Flask-Limiter
+limiter = Limiter(
+    get_remote_address,
+    app=app,
+    default_limits=["200 per day", "50 per hour"]
+)
 
 # Function to fetch the encryption key securely from an environment variable
 def get_encryption_key():
@@ -58,7 +67,6 @@ def decrypt_file(encrypted_path, decrypted_path):
 
     unpadder = padding.PKCS7(algorithms.AES.block_size).unpadder()
     
-    # Initialize unpadded_plaintext safely with error handling
     try:
         unpadded_plaintext = unpadder.update(plaintext) + unpadder.finalize()
     except Exception as e:
@@ -99,6 +107,7 @@ def home():
     return render_template('index.html', encrypted_files=encrypted_files)
 
 @app.route('/login', methods=['GET', 'POST'])
+@limiter.limit("5 per 10 minutes")  # Rate limit for login
 def login():
     if request.method == 'POST':
         username = request.form['username']
@@ -178,3 +187,4 @@ def logout():
 
 if __name__ == '__main__':
     app.run(debug=True)
+
