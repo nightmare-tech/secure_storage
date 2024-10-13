@@ -1,31 +1,38 @@
 <!-- templates/register.html -->
 <!DOCTYPE html>
-<html lang="en" id="html_register">
+<html id="html_login">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Register</title>
-    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='styles.css') }}">
+    <title>Sign Up</title>
+    <!-- <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='styles.css') }}"> -->
+     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <div class="container" id="container_register">
-        <div class ="title" >
-        <h1>Register</h1>
+    <div class="ring">
+        <i style="--clr:#00ff0a;"></i>
+        <i style="--clr:#ff0057;"></i>
+        <i style="--clr:#fffd44;"></i>
+        <div class="login">
+          <h2>Sign Up</h2>
+          
+          <form action="{{ url_for('register') }}" method="post" class="form">
+          <div class="inputBx">
+            <input type="text" placeholder="Username" class="user_pass"required><br><br>
+          </div>
+          <div class="inputBx">
+            <input type="password" placeholder="Password" class="user_pass" required><br><br>
+          </div>
+          <div class="inputBx">
+            <input type="submit" value="Sign up"><br><br>
+          </div>
+          <div class="links">
+        
+            <p>Already have an account?
+
+            </p>
+            <a href="{{ url_for('login') }}" class="anchor "> Sign in</a>
+          </div>
         </div>
-        <form action="{{ url_for('register') }}" method="post" class="form">
-            <div>
-                <!--<label for="username">Username:</label>-->
-                <input type="text" id="username" name="username" placeholder="Username" required><br><br>
-            </div>
-            <div>
-                <!--<label for="password">Password:</label>-->
-                <input type="password" id="password" name="password" placeholder="Password" required><br><br>
-            </div>
-            <div class="field">
-                <input type="submit" value="SUBMIT" class="btn" id="btn_register">
-            </div>
-        </form>
-        <p class="para">Already have an account? <a href="{{ url_for('login') }}" class="anchor ">Login here</a></p>
-    </div>
+    </form>
+      </div>
 </body>
 </html>
