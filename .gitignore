@@ -4,3 +4,5 @@
 ./uploads
 logs/
 ./venv
+database.db
+.DS_Store
