@@ -96,7 +96,9 @@ def home():
         return redirect(url_for('login'))
     
     encrypted_files = os.listdir(app.config['ENCRYPTED_FOLDER'])
-    return render_template('index.html', encrypted_files=encrypted_files)
+    username = session.get('username', 'Guest')  # Get username from session, default to 'Guest' if not found
+    return render_template('index.html', encrypted_files=encrypted_files, username=username)
+
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
@@ -110,7 +112,7 @@ def login():
             cursor.execute('SELECT * FROM users WHERE username=?', (username,))
             user = cursor.fetchone()
             if user and bcrypt.checkpw(password.encode(), user[2].encode()):
-                session['username'] = username
+                session['username'] = username  # Ensure this line is present
                 return redirect(url_for('home'))
             else:
                 return render_template('login.html', error='Invalid username or password')
@@ -176,5 +178,20 @@ def logout():
     session.pop('username', None)
     return redirect(url_for('login'))
 
+    # Add this new route for deleting files
+@app.route('/delete_files', methods=['POST'])
+def delete_files():
+    if not is_logged_in():
+        return redirect(url_for('login'))
+
+    files_to_delete = request.form.getlist('files')
+    for filename in files_to_delete:
+        file_path = os.path.join(app.config['ENCRYPTED_FOLDER'], filename)
+        if os.path.exists(file_path):
+            os.remove(file_path)
+
+    return redirect(url_for('home'))
+
 if __name__ == '__main__':
+    app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 0
     app.run(debug=True)
